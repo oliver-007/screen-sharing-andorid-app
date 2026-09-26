@@ -54,23 +54,26 @@ class StreamController extends Controller
 
     // Stop stream + save duration
     public function stopStream()
-    {
-        $session = StreamSession::where('user_id', auth()->id())
-            ->whereNull('ended_at')
-            ->latest()
-            ->first();
+{
+    $session = StreamSession::where('user_id', auth()->id())
+        ->whereNull('ended_at')
+        ->latest()
+        ->first();
 
-        if ($session) {
-            $session->update([
-                'ended_at'         => now(),
-                'duration_seconds' => now()->diffInSeconds($session->started_at),
-            ]);
-        }
-
-        broadcast(new StreamEnded());
-
-        return response()->json(['status' => 'stream ended']);
+    if ($session) {
+        $endTime = now();
+        $duration = (int) abs($endTime->diffInSeconds($session->started_at));
+        
+        $session->update([
+            'ended_at'         => $endTime,
+            'duration_seconds' => $duration,
+        ]);
     }
+
+    broadcast(new StreamEnded());
+
+    return response()->json(['status' => 'stream ended']);
+}
 
     // Get stream history
     public function history()
